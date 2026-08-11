@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Password;
 
 class AuthController extends Controller
 {
@@ -79,5 +80,55 @@ public function me(Request $request): JsonResponse
     return response()->json([
         'user' => $request->user(),
         ]);
+    }
+
+    public function forgotPassword(Request $request): JsonResponse
+{
+    $validated = $request->validate([
+        'email' => ['required', 'email'],
+    ]);
+
+    $status = Password::sendResetLink([
+        'email' => $validated['email'],
+    ]);
+
+    if ($status !== Password::RESET_LINK_SENT) {
+        throw ValidationException::withMessages([
+            'email' => [__($status)],
+        ]);
+    }
+
+    return response()->json([
+        'message' => 'Password reset link sent.',
+    ]);
+    }
+    public function resetPassword(Request $request): JsonResponse
+    {
+    $validated = $request->validate([
+        'email' => ['required', 'email'],
+        'token' => ['required', 'string'],
+        'password' => ['required', 'string', 'min:8', 'confirmed'],
+    ]);
+
+    $status = Password::reset(
+        $validated,
+        function (User $user, string $password) {
+            $user->forceFill([
+                'password' => Hash::make($password),
+            ])->save();
+
+            $user->tokens()->delete();
+        }
+    );
+
+    if ($status !== Password::PASSWORD_RESET) {
+        throw ValidationException::withMessages([
+            'email' => [__($status)],
+        ]);
+    }
+
+    return response()->json([
+        'message' => 'Password reset successful.',
+    ]);
     }
 }
