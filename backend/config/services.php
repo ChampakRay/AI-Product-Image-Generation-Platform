@@ -22,6 +22,11 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    'openai' => [
+    'api_key' => env('OPENAI_API_KEY'),
+    'image_model' => env('OPENAI_IMAGE_MODEL', 'gpt-image-2'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
@@ -33,6 +38,10 @@ return [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
+    ],
+    'huggingface' => [
+    'api_key' => env('HUGGINGFACE_API_KEY'),
+    'image_provider' => env('HUGGINGFACE_IMAGE_PROVIDER', 'auto'),
     ],
 
 ];

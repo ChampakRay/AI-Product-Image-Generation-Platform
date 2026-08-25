@@ -20,5 +20,10 @@ class DatabaseSeeder extends Seeder
             'role' => 'admin',
             'status' => 'active',
         ]);
+
+        $this->call([
+            ProductSeeder::class,
+            AiProviderSeeder::class,
+        ]);
     }
 }

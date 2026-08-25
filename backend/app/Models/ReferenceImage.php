@@ -10,6 +10,14 @@ class ReferenceImage extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'generation_id',
+        'file_path',
+        'original_filename',
+        'mime_type',
+        'size_bytes',
+    ];
+
     public function generation(): BelongsTo
     {
         return $this->belongsTo(Generation::class);
