@@ -131,6 +131,29 @@ class GenerationController extends Controller
             'data' => $generation,
         ]);
     }
+
+        public function regenerate(
+        Request $request,
+        int $generationId
+        ): JsonResponse {
+        try {
+               $generation = $this->generationService->regenerateGeneration(
+                userId: $request->user()->id,
+                generationId: $generationId,
+               );
+
+            return response()->json([
+                   'message' => 'Generation queued successfully.',
+                'data' => $generation,
+            ], 201);
+        } catch (RuntimeException $exception) {
+            return response()->json([
+                'message' => 'Regeneration failed.',
+                'error' => $exception->getMessage(),
+            ], 422);
+        }
+    }
+
             public function download(
             Request $request,
             int $generationId

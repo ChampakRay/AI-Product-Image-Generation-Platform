@@ -19,7 +19,8 @@ class GenerationService
         string $prompt,
         array $referenceImages = [],
         ?string $aspectRatio = null,
-        string $outputQuality = 'high'
+        string $outputQuality = 'high',
+        ?int $parentGenerationId = null
     ): Generation {
         $product = Product::where('id', $productId)
             ->where('is_active', true)
@@ -48,10 +49,6 @@ class GenerationService
             );
         }
 
-        /*
-         * Make sure only supported quality values
-         * can reach the generation pipeline.
-         */
         if (!in_array(
             $outputQuality,
             ['standard', 'high', 'ultra'],
@@ -62,10 +59,6 @@ class GenerationService
             );
         }
 
-        /*
-         * Ultra is currently a placeholder in the frontend.
-         * Actual 4K/upscaling will be implemented later.
-         */
         if ($outputQuality === 'ultra') {
             throw new RuntimeException(
                 'Ultra / 4K output is not available yet.'
@@ -80,6 +73,7 @@ class GenerationService
             $prompt,
             $aspectRatio,
             $outputQuality,
+            $parentGenerationId,
             $referenceImages
         ) {
             $generation = Generation::create([
@@ -87,6 +81,7 @@ class GenerationService
                 'product_id' => $productId,
                 'ai_provider_id' => $provider->id,
                 'ai_model_id' => $model->id,
+                'parent_generation_id' => $parentGenerationId,
                 'prompt' => $prompt,
                 'aspect_ratio' => $aspectRatio,
                 'output_quality' => $outputQuality,
@@ -108,13 +103,6 @@ class GenerationService
             return $generation;
         });
 
-        /*
-         * Send the generation to the queue.
-         *
-         * ProcessGeneration will read output_quality
-         * from the Generation record and pass it to
-         * the AI provider.
-         */
         ProcessGeneration::dispatch(
             $generation->id
         );
@@ -126,6 +114,59 @@ class GenerationService
             'referenceImages',
             'apiUsageLogs',
         ]);
+    }
+
+    public function regenerateGeneration(
+        int $userId,
+        int $generationId
+    ): Generation {
+        $originalGeneration = Generation::where('user_id', $userId)
+            ->with([
+                'product',
+                'aiProvider',
+                'aiModel',
+                'referenceImages',
+            ])
+            ->findOrFail($generationId);
+
+        if ($originalGeneration->status !== 'completed') {
+            throw new RuntimeException(
+                'Only completed generations can be regenerated.'
+            );
+        }
+
+        if (!$originalGeneration->aiModel) {
+            throw new RuntimeException(
+                'The AI model for this generation is no longer available.'
+            );
+        }
+
+        $referenceImages = $originalGeneration->referenceImages
+            ->map(function ($image) {
+                return [
+                    'path' =>
+                        $image->file_path,
+                    'original_filename' =>
+                        $image->original_filename,
+                    'mime_type' =>
+                        $image->mime_type,
+                    'size_bytes' =>
+                        $image->size_bytes,
+                ];
+            })
+            ->values()
+            ->all();
+
+        return $this->createGeneration(
+            userId: $userId,
+            productId: $originalGeneration->product_id,
+            aiModelId: $originalGeneration->ai_model_id,
+            prompt: $originalGeneration->prompt,
+            referenceImages: $referenceImages,
+            aspectRatio: $originalGeneration->aspect_ratio,
+            outputQuality: $originalGeneration->output_quality,
+            parentGenerationId: $originalGeneration->id,
+        );
     }
 
     public function getUserGenerations(int $userId)
@@ -151,6 +192,8 @@ class GenerationService
                 'aiProvider',
                 'aiModel',
                 'referenceImages',
+                'parentGeneration',
+                'childGenerations',
             ])
             ->findOrFail($generationId);
     }

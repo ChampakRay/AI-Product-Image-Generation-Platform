@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AiModel extends Model
 {
@@ -29,5 +30,10 @@ class AiModel extends Model
     public function aiProvider(): BelongsTo
     {
         return $this->belongsTo(AiProvider::class);
+    }
+
+    public function generations(): HasMany
+    {
+        return $this->hasMany(Generation::class);
     }
 }

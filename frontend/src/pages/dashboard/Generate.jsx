@@ -22,7 +22,11 @@ function Generate() {
             : ""
     );
 
-    const [selectedModel, setSelectedModel] = useState("");
+    const [selectedModel, setSelectedModel] = useState(
+    navigationState.modelId
+        ? String(navigationState.modelId)
+        : ""
+    );
 
     const [prompt, setPrompt] = useState(
         navigationState.prompt || ""
@@ -37,7 +41,9 @@ function Generate() {
     );
 
     const [referenceImages, setReferenceImages] =
-        useState([]);
+    useState(
+        navigationState.referenceImages || []
+    );
 
     const [generation, setGeneration] = useState(null);
 
@@ -46,6 +52,10 @@ function Generate() {
 
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+
+    const BACKEND_URL =
+    import.meta.env.VITE_BACKEND_URL ||
+    "http://127.0.0.1:8000";
 
     /*
      * Load products and AI models.
@@ -559,9 +569,9 @@ function Generate() {
      * Generated image URL.
      */
     const generationImageUrl =
-        generation?.output_image_path
-            ? `http://127.0.0.1:8000/storage/${generation.output_image_path}`
-            : null;
+    generation?.output_image_path
+        ? `${BACKEND_URL}/storage/${generation.output_image_path}`
+        : null;
 
     if (loading) {
         return (
@@ -847,7 +857,7 @@ function Generate() {
                                             className="group relative overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
                                         >
                                             <img
-                                                src={`http://127.0.0.1:8000/storage/${image.path}`}
+                                                src={`${BACKEND_URL}/storage/${image.path}`}
                                                 alt={
                                                     image.original_filename ||
                                                     "Reference image"

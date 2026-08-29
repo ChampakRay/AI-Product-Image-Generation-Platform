@@ -22,15 +22,22 @@ class AiProvider extends Model
 
     public function generations(): HasMany
     {
-        return $this->hasMany(Generation::class);
+        return $this->hasMany(
+            Generation::class
+        );
     }
 
     public function apiUsageLogs(): HasMany
     {
-        return $this->hasMany(ApiUsageLog::class);
+        return $this->hasMany(
+            ApiUsageLog::class
+        );
     }
+
     public function aiModels(): HasMany
     {
-        return $this->hasMany(AiModel::class);
+        return $this->hasMany(
+            AiModel::class
+        );
     }
 }

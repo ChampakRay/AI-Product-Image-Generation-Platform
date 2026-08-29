@@ -12,6 +12,11 @@ import Generate from "./pages/dashboard/Generate";
 import History from "./pages/dashboard/History";
 import GenerationDetails from "./pages/dashboard/GenerationDetails";
 
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminProviders from "./pages/admin/AdminProviders";
+import AdminModels from "./pages/admin/AdminModels";
+import AdminApiUsage from "./pages/admin/AdminApiUsage";
+
 import DashboardLayout from "./components/layout/DashboardLayout";
 
 function App() {
@@ -38,7 +43,7 @@ function App() {
                 element={<ResetPassword />}
             />
 
-            {/* Protected application */}
+            {/* Normal authenticated application */}
             <Route element={<ProtectedRoute />}>
                 <Route element={<DashboardLayout />}>
                     <Route
@@ -55,12 +60,38 @@ function App() {
                         path="/history"
                         element={<History />}
                     />
-                    </Route>
+
                     <Route
                         path="/generations/:generationId"
                         element={<GenerationDetails />}
                     />
-                    </Route>
+                </Route>
+            </Route>
+
+            {/* Admin-only application */}
+            <Route element={<ProtectedRoute adminOnly />}>
+                <Route element={<DashboardLayout />}>
+                    <Route
+                        path="/admin"
+                        element={<AdminDashboard />}
+                    />
+
+                    <Route
+                        path="/admin/providers"
+                        element={<AdminProviders />}
+                    />
+
+                    <Route
+                        path="/admin/models"
+                        element={<AdminModels />}
+                    />
+
+                    <Route
+                        path="/admin/api-usage"
+                        element={<AdminApiUsage />}
+                    />
+                </Route>
+            </Route>
 
             {/* Fallback */}
             <Route

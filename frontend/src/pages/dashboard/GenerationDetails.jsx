@@ -2,7 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../../api/axios";
 
-const BACKEND_URL = "http://127.0.0.1:8000";
+const BACKEND_URL =
+    import.meta.env.VITE_BACKEND_URL ||
+    "http://127.0.0.1:8000";
 
 function StatusBadge({ status }) {
     const styles = {
@@ -109,8 +111,26 @@ function GenerationDetails() {
 
             link.href = downloadUrl;
 
+            const contentType =
+                response.headers[
+                    "content-type"
+                ] || "";
+
+            let extension = "png";
+
+            if (
+                contentType.includes("jpeg") ||
+                contentType.includes("jpg")
+            ) {
+                extension = "jpg";
+            } else if (
+                contentType.includes("webp")
+            ) {
+                extension = "webp";
+            }
+
             link.download =
-                `generation-${generationId}.png`;
+                `generation-${generationId}.${extension}`;
 
             document.body.appendChild(link);
 
@@ -134,34 +154,98 @@ function GenerationDetails() {
         }
     };
 
+    /*
+     * Open the Generate page with the current
+     * generation's settings pre-filled.
+     */
     const handleEditPrompt = () => {
         navigate("/generate", {
             state: {
                 editGenerationId:
                     generation.id,
+
                 prompt:
                     generation.prompt || "",
+
                 productId:
                     generation.product_id,
+
+                modelId:
+                    generation.ai_model_id,
+
                 aspectRatio:
-                    generation.aspect_ratio,
+                    generation.aspect_ratio ||
+                    "1:1",
+
+                outputQuality:
+                    generation.output_quality ||
+                    "high",
+
+                referenceImages:
+                (generation.reference_images || []).map(
+                    (image) => ({
+                    path:
+                        image.file_path ||
+                        image.path,
+
+                    original_filename:
+                        image.original_filename,
+
+                    mime_type:
+                        image.mime_type,
+
+                    size_bytes:
+                        image.size_bytes,
+                })
+    ),
             },
         });
     };
 
-    const handleRegenerate = () => {
-        navigate("/generate", {
-            state: {
-                regenerateGenerationId:
-                    generation.id,
-                prompt:
-                    generation.prompt || "",
-                productId:
-                    generation.product_id,
-                aspectRatio:
-                    generation.aspect_ratio,
-            },
-        });
+    /*
+     * Actually call the backend regeneration
+     * endpoint.
+     */
+    const handleRegenerate = async () => {
+        const confirmed = window.confirm(
+            "Regenerate this image using the same prompt, model, settings, and reference images?"
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            const response = await api.post(
+                `/generations/${generation.id}/regenerate`
+            );
+
+            const newGeneration =
+                response.data.data;
+
+            if (!newGeneration?.id) {
+                throw new Error(
+                    "The regenerated generation was not returned by the server."
+                );
+            }
+
+            navigate(
+                `/generations/${newGeneration.id}`
+            );
+        } catch (regenerateError) {
+            console.error(
+                "Regeneration failed:",
+                regenerateError
+            );
+
+            window.alert(
+                regenerateError.response?.data
+                    ?.error ||
+                    regenerateError.response?.data
+                        ?.message ||
+                    "Unable to regenerate this image."
+            );
+        }
     };
 
     if (isLoading) {
@@ -344,8 +428,7 @@ function GenerationDetails() {
                                 >
                                     {isFailed
                                         ? "!"
-                                        : "..."
-                                    }
+                                        : "..."}
                                 </div>
 
                                 <p className="mt-4 font-medium text-gray-800">
@@ -453,6 +536,17 @@ function GenerationDetails() {
                                 </span>
                             </div>
 
+                            <div className="flex justify-between gap-4 py-3">
+                                <span className="text-sm text-gray-500">
+                                    Output Quality
+                                </span>
+
+                                <span className="text-right text-sm font-medium capitalize text-gray-900">
+                                    {generation.output_quality ||
+                                        "High"}
+                                </span>
+                            </div>
+
                             {generation.generation_time_ms && (
                                 <div className="flex justify-between gap-4 py-3">
                                     <span className="text-sm text-gray-500">
@@ -463,9 +557,7 @@ function GenerationDetails() {
                                         {(
                                             generation.generation_time_ms /
                                             1000
-                                        ).toFixed(
-                                            1
-                                        )}
+                                        ).toFixed(1)}
                                         s
                                     </span>
                                 </div>
@@ -509,20 +601,26 @@ function GenerationDetails() {
                                 onClick={
                                     handleRegenerate
                                 }
-                                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium text-gray-800 transition hover:bg-gray-50"
+                                disabled={
+                                    isPending ||
+                                    isProcessing
+                                }
+                                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium text-gray-800 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                Regenerate
+                                {isPending ||
+                                isProcessing
+                                    ? "Generation in progress..."
+                                    : "Regenerate"}
                             </button>
 
                             <button
-                                type="button"
-                                onClick={
-                                    handleEditPrompt
-                                }
-                                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium text-gray-800 transition hover:bg-gray-50"
-                            >
-                                Edit Prompt
-                            </button>
+                                    type="button"
+                                    onClick={handleEditPrompt}
+                                    disabled={isPending || isProcessing}
+                                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium text-gray-800 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    Edit Prompt
+                                </button>
 
                             <Link
                                 to="/generate"
