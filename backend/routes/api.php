@@ -13,6 +13,9 @@ use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Admin\UserController;
+use App\Http\Controllers\Api\Admin\AdminGenerationController;
+use App\Http\Controllers\Api\Admin\AnalyticsController;
 
 Route::post(
     '/register',
@@ -44,6 +47,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get(
         '/me',
         [AuthController::class, 'me']
+    );
+
+    Route::get(
+    '/profile',
+    [AuthController::class, 'profile']
+    );
+
+    Route::put(
+        '/profile',
+        [AuthController::class, 'updateProfile']
+    );
+
+    Route::put(
+        '/profile/password',
+        [AuthController::class, 'updatePassword']
     );
 
     Route::post(
@@ -104,6 +122,36 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get(
                 '/dashboard',
                 [DashboardController::class, 'index']
+            );
+
+                Route::get(
+                      '/analytics',
+                       [AnalyticsController::class, 'index']
+            );
+
+                Route::get(
+                    '/generations',
+                    [AdminGenerationController::class, 'index']
+                );
+
+                Route::get(
+                    '/generations/{generationId}',
+                    [AdminGenerationController::class, 'show']
+                );
+
+                Route::delete(
+                    '/generations/{generationId}',
+                    [AdminGenerationController::class, 'destroy']
+                );
+
+            Route::get(
+            '/users',
+            [UserController::class, 'index']
+            );
+
+            Route::put(
+                '/users/{user}/status',
+                [UserController::class, 'updateStatus']
             );
 
             Route::get(

@@ -6,20 +6,113 @@ const BACKEND_URL = "http://127.0.0.1:8000";
 
 function StatusBadge({ status }) {
     const styles = {
-        completed: "bg-green-100 text-green-700",
-        processing: "bg-yellow-100 text-yellow-700",
-        pending: "bg-blue-100 text-blue-700",
-        failed: "bg-red-100 text-red-700",
+        completed: "bg-emerald-50 text-emerald-700 ring-emerald-600/10",
+        processing: "bg-amber-50 text-amber-700 ring-amber-600/10",
+        pending: "bg-blue-50 text-blue-700 ring-blue-600/10",
+        failed: "bg-red-50 text-red-700 ring-red-600/10",
     };
 
     return (
         <span
-            className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                styles[status] || "bg-gray-100 text-gray-600"
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold capitalize ring-1 ring-inset ${
+                styles[status] ||
+                "bg-slate-50 text-slate-600 ring-slate-500/10"
             }`}
         >
+            <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                    status === "completed"
+                        ? "bg-emerald-500"
+                        : status === "processing"
+                          ? "bg-amber-500"
+                          : status === "pending"
+                            ? "bg-blue-500"
+                            : status === "failed"
+                              ? "bg-red-500"
+                              : "bg-slate-400"
+                }`}
+            />
+
             {status}
         </span>
+    );
+}
+
+function ImagePlaceholder({ generation }) {
+    const isFailed = generation.status === "failed";
+
+    return (
+        <div className="flex h-full items-center justify-center bg-slate-50 p-6 text-center">
+            <div>
+                <div
+                    className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${
+                        isFailed
+                            ? "bg-red-50 text-red-500"
+                            : "bg-white text-slate-400"
+                    }`}
+                >
+                    {isFailed ? (
+                        <svg
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <circle cx="12" cy="12" r="9" />
+                            <path d="M12 8v4" />
+                            <path d="M12 16h.01" />
+                        </svg>
+                    ) : (
+                        <svg
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <rect
+                                x="3"
+                                y="3"
+                                width="18"
+                                height="18"
+                                rx="2"
+                            />
+                            <circle cx="8.5" cy="8.5" r="1.5" />
+                            <path d="m21 15-5-5L5 21" />
+                        </svg>
+                    )}
+                </div>
+
+                <p
+                    className={`mt-3 text-sm font-semibold ${
+                        isFailed ? "text-red-600" : "text-slate-600"
+                    }`}
+                >
+                    {isFailed
+                        ? "Generation failed"
+                        : "No image available"}
+                </p>
+
+                {generation.error_message && (
+                    <p className="mx-auto mt-2 line-clamp-3 max-w-xs text-xs leading-5 text-slate-500">
+                        {generation.error_message}
+                    </p>
+                )}
+
+                {!isFailed && (
+                    <p className="mt-1 text-xs text-slate-400">
+                        The image may still be processing.
+                    </p>
+                )}
+            </div>
+        </div>
     );
 }
 
@@ -69,84 +162,226 @@ function History() {
 
     if (isLoading) {
         return (
-            <div className="mx-auto max-w-7xl space-y-6">
+            <div className="space-y-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-950">
-                        Generation History
-                    </h1>
-
-                    <p className="mt-2 text-gray-600">
-                        View and manage your generated product images.
-                    </p>
+                    <div className="h-8 w-56 animate-pulse rounded-lg bg-slate-200" />
+                    <div className="mt-3 h-4 w-80 animate-pulse rounded bg-slate-200" />
                 </div>
 
-                <div className="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
-                    <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-black" />
+                <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                    {[1, 2, 3].map((item) => (
+                        <div
+                            key={item}
+                            className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+                        >
+                            <div className="aspect-square animate-pulse bg-slate-100" />
 
-                    <p className="mt-4 text-sm text-gray-500">
-                        Loading generation history...
-                    </p>
+                            <div className="space-y-4 p-5">
+                                <div className="h-4 w-32 animate-pulse rounded bg-slate-100" />
+                                <div className="h-3 w-48 animate-pulse rounded bg-slate-100" />
+                                <div className="h-12 animate-pulse rounded bg-slate-100" />
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="mx-auto max-w-7xl space-y-6">
+        <div className="space-y-8">
             {/* Header */}
-            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <section className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-950">
+                    <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-600">
+                        <svg
+                            width="13"
+                            height="13"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <path d="M3 12a9 9 0 1 0 3-6.7" />
+                            <path d="M3 4v5h5" />
+                        </svg>
+
+                        Your creations
+                    </div>
+
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
                         Generation History
                     </h1>
 
-                    <p className="mt-2 text-gray-600">
-                        View and manage your generated product images.
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+                        View, manage, and revisit your generated product
+                        images.
                     </p>
                 </div>
 
                 <Link
                     to="/generate"
-                    className="rounded-lg bg-black px-5 py-3 text-center text-sm font-medium text-white transition hover:bg-gray-800"
+                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
+                    <svg
+                        width="17"
+                        height="17"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    >
+                        <path d="M12 3l1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3z" />
+                        <path d="M19 16l.7 2.3L22 19l-2.3.7L19 16z" />
+                    </svg>
+
                     Generate New Image
                 </Link>
-            </div>
+            </section>
 
-            {/* Errors */}
+            {/* Error */}
             {isError && (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                    {error?.response?.data?.message ||
-                        "Unable to load generation history."}
+                <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                    <svg
+                        className="mt-0.5 shrink-0"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    >
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 8v4" />
+                        <path d="M12 16h.01" />
+                    </svg>
+
+                    <div>
+                        <p className="font-semibold">
+                            Unable to load generation history
+                        </p>
+
+                        <p className="mt-1 text-red-600">
+                            {error?.response?.data?.message ||
+                                "Please try again later."}
+                        </p>
+                    </div>
                 </div>
             )}
 
+            {/* Delete error */}
             {deleteMutation.isError && (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                    {deleteMutation.error?.response?.data?.message ||
-                        "Unable to delete generation."}
+                <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                    <svg
+                        className="mt-0.5 shrink-0"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    >
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 8v4" />
+                        <path d="M12 16h.01" />
+                    </svg>
+
+                    <div>
+                        <p className="font-semibold">
+                            Unable to delete generation
+                        </p>
+
+                        <p className="mt-1 text-red-600">
+                            {deleteMutation.error?.response?.data?.message ||
+                                "Please try again."}
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {/* Summary */}
+            {generations.length > 0 && (
+                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+                    <div>
+                        <p className="text-sm font-semibold text-slate-800">
+                            Your generations
+                        </p>
+
+                        <p className="mt-0.5 text-xs text-slate-400">
+                            {generations.length}{" "}
+                            {generations.length === 1
+                                ? "generation"
+                                : "generations"}{" "}
+                            in your history
+                        </p>
+                    </div>
+
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-sm font-bold text-indigo-600">
+                        {generations.length}
+                    </div>
                 </div>
             )}
 
             {/* Empty state */}
             {generations.length === 0 ? (
-                <div className="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
-                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-2xl">
-                        ✨
+                <div className="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+                        <svg
+                            width="28"
+                            height="28"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.7"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <rect
+                                x="3"
+                                y="3"
+                                width="18"
+                                height="18"
+                                rx="2"
+                            />
+                            <circle cx="8.5" cy="8.5" r="1.5" />
+                            <path d="m21 15-5-5L5 21" />
+                        </svg>
                     </div>
 
-                    <h2 className="mt-5 text-xl font-semibold text-gray-900">
+                    <h2 className="mt-5 text-xl font-semibold text-slate-900">
                         No generations yet
                     </h2>
 
-                    <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
-                        Create your first AI product image to see it here.
+                    <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                        Create your first AI product image and your completed
+                        generations will appear here.
                     </p>
 
                     <Link
                         to="/generate"
-                        className="mt-6 inline-block rounded-lg bg-black px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800"
+                        className="mt-6 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700"
                     >
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <path d="M12 3l1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3z" />
+                        </svg>
+
                         Create Your First Image
                     </Link>
                 </div>
@@ -154,126 +389,123 @@ function History() {
                 /* Generation grid */
                 <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
                     {generations.map((generation) => {
-                        const imageUrl =
-                            generation.output_image_path
-                                ? `${BACKEND_URL}/storage/${generation.output_image_path}`
-                                : null;
+                        const imageUrl = generation.output_image_path
+                            ? `${BACKEND_URL}/storage/${generation.output_image_path}`
+                            : null;
 
                         return (
                             <article
                                 key={generation.id}
-                                className="group overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                                className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg"
                             >
                                 {/* Image */}
-                                <div className="relative aspect-square overflow-hidden bg-gray-100">
+                                <div className="relative aspect-square overflow-hidden bg-slate-100">
                                     {imageUrl ? (
                                         <img
                                             src={imageUrl}
                                             alt={
-                                                generation.prompt ||
+                                                generation.product?.name ||
                                                 "Generated product image"
                                             }
-                                            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                                            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.025]"
                                         />
                                     ) : (
-                                        <div className="flex h-full items-center justify-center p-6 text-center">
-                                            <div>
-                                                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white text-xl shadow-sm">
-                                                    {generation.status ===
-                                                    "failed"
-                                                        ? "!"
-                                                        : "..."}
-                                                </div>
-
-                                                <p className="mt-3 font-medium text-gray-700">
-                                                    {generation.status ===
-                                                    "failed"
-                                                        ? "Generation failed"
-                                                        : "No image available"}
-                                                </p>
-
-                                                {generation.error_message && (
-                                                    <p className="mt-2 line-clamp-3 text-xs text-gray-500">
-                                                        {
-                                                            generation.error_message
-                                                        }
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
+                                        <ImagePlaceholder
+                                            generation={generation}
+                                        />
                                     )}
 
-                                    {/* Status overlay */}
-                                    <div className="absolute left-3 top-3">
+                                    {/* Status */}
+                                    <div className="absolute left-4 top-4">
                                         <StatusBadge
-                                            status={
-                                                generation.status
-                                            }
+                                            status={generation.status}
                                         />
                                     </div>
                                 </div>
 
                                 {/* Card content */}
                                 <div className="space-y-4 p-5">
+                                    {/* Product + model */}
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0">
-                                            <h2 className="truncate text-sm font-semibold text-gray-900">
-                                                {generation
-                                                    .product?.name ||
+                                            <h2 className="truncate text-sm font-semibold text-slate-900">
+                                                {generation.product?.name ||
                                                     "Product"}
                                             </h2>
 
-                                            <p className="mt-1 truncate text-xs text-gray-400">
-                                                {generation
-                                                    .ai_model?.name ||
-                                                    generation
-                                                        .aiModel
-                                                        ?.name ||
-                                                    generation
-                                                        .ai_provider
+                                            <p className="mt-1 truncate text-xs text-slate-400">
+                                                {generation.ai_model?.name ||
+                                                    generation.aiModel?.name ||
+                                                    generation.ai_provider
                                                         ?.name ||
                                                     "AI Model"}
                                             </p>
                                         </div>
 
                                         {generation.aspect_ratio && (
-                                            <span className="shrink-0 rounded-md bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-500">
-                                                {
-                                                    generation.aspect_ratio
-                                                }
+                                            <span className="shrink-0 rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-500">
+                                                {generation.aspect_ratio}
                                             </span>
                                         )}
                                     </div>
 
-                                    <p className="line-clamp-3 text-sm leading-5 text-gray-600">
+                                    {/* Prompt */}
+                                    <p className="line-clamp-3 text-sm leading-5 text-slate-500">
                                         {generation.prompt}
                                     </p>
 
-                                    <div className="text-xs text-gray-400">
+                                    {/* Date */}
+                                    <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                                        <svg
+                                            width="13"
+                                            height="13"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <circle cx="12" cy="12" r="9" />
+                                            <path d="M12 7v5l3 2" />
+                                        </svg>
+
                                         {new Date(
                                             generation.created_at
                                         ).toLocaleString()}
                                     </div>
 
-                                    <div className="flex gap-2 border-t border-gray-100 pt-4">
+                                    {/* Actions */}
+                                    <div className="flex gap-2 border-t border-slate-100 pt-4">
                                         <Link
                                             to={`/generations/${generation.id}`}
-                                            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-800 transition hover:bg-gray-50"
+                                            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600"
                                         >
                                             View Details
+
+                                            <svg
+                                                width="14"
+                                                height="14"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.8"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            >
+                                                <path d="m9 18 6-6-6-6" />
+                                            </svg>
                                         </Link>
 
                                         <button
                                             type="button"
                                             onClick={() =>
-                                                handleDelete(
-                                                    generation.id
-                                                )
+                                                handleDelete(generation.id)
                                             }
                                             disabled={
                                                 deleteMutation.isPending
                                             }
-                                            className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="rounded-xl border border-red-200 bg-white px-3 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             {deleteMutation.isPending
                                                 ? "Deleting..."

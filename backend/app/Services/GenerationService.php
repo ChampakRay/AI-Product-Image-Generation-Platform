@@ -199,31 +199,75 @@ class GenerationService
     }
 
     public function deleteUserGeneration(
-        int $userId,
-        int $generationId
+    int $userId,
+    int $generationId
     ): void {
-        $generation = Generation::where('user_id', $userId)
-            ->findOrFail($generationId);
+    $generation = Generation::where(
+        'user_id',
+        $userId
+    )
+        ->with('referenceImages')
+        ->findOrFail($generationId);
 
-        foreach (
-            $generation->referenceImages
-            as $referenceImage
-        ) {
+    /*
+    |--------------------------------------------------------------------------
+    | Delete reference image files
+    |--------------------------------------------------------------------------
+    */
+
+    foreach ($generation->referenceImages as $referenceImage) {
+        if ($referenceImage->file_path) {
             \Illuminate\Support\Facades\Storage::disk(
                 'public'
             )->delete(
                 $referenceImage->file_path
             );
         }
+    }
 
-        if ($generation->output_image_path) {
-            \Illuminate\Support\Facades\Storage::disk(
-                'public'
-            )->delete(
-                $generation->output_image_path
-            );
-        }
+    /*
+    |--------------------------------------------------------------------------
+    | Delete generated image
+    |--------------------------------------------------------------------------
+    */
 
-        $generation->delete();
+    if ($generation->output_image_path) {
+        \Illuminate\Support\Facades\Storage::disk(
+            'public'
+        )->delete(
+            $generation->output_image_path
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Preserve child generations
+    |--------------------------------------------------------------------------
+    */
+
+    Generation::where(
+        'parent_generation_id',
+        $generation->id
+    )->update([
+        'parent_generation_id' => null,
+    ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Delete related database records
+    |--------------------------------------------------------------------------
+    */
+
+    $generation->referenceImages()->delete();
+
+    $generation->apiUsageLogs()->delete();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Delete generation
+    |--------------------------------------------------------------------------
+    */
+
+    $generation->delete();
     }
 }

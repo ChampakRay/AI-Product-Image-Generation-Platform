@@ -4,13 +4,17 @@ import Topbar from "./Topbar";
 
 function DashboardLayout() {
     return (
-        <div className="flex min-h-screen bg-gray-50">
-            <Sidebar />
+        <div className="min-h-screen bg-slate-50">
+            {/* Fixed sidebar */}
+            <div className="fixed inset-y-0 left-0 z-40 hidden w-64 lg:block">
+                <Sidebar />
+            </div>
 
-            <div className="flex min-w-0 flex-1 flex-col">
+            {/* Main application */}
+            <div className="min-h-screen lg:pl-64">
                 <Topbar />
 
-                <main className="flex-1 p-6">
+                <main className="min-h-[calc(100vh-5rem)] p-4 sm:p-6 lg:p-8">
                     <Outlet />
                 </main>
             </div>

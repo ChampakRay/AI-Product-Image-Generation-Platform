@@ -60,6 +60,17 @@ class GenerationController extends Controller
             'reference_images.*.path' => [
                 'required',
                 'string',
+                function ($attribute, $value, $fail) use ($request) {
+                    $prefix = 'reference-images/' . $request->user()->id . '/';
+
+                    if (!str_starts_with($value, $prefix)) {
+                        $fail('Invalid reference image.');
+                    }
+
+                    if (!Storage::disk('public')->exists($value)) {
+                        $fail('Reference image not found.');
+                    }
+                },
             ],
 
             'reference_images.*.original_filename' => [

@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 
@@ -11,6 +11,7 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import Generate from "./pages/dashboard/Generate";
 import History from "./pages/dashboard/History";
 import GenerationDetails from "./pages/dashboard/GenerationDetails";
+import Settings from "./pages/settings/Settings";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProviders from "./pages/admin/AdminProviders";
@@ -18,6 +19,10 @@ import AdminModels from "./pages/admin/AdminModels";
 import AdminApiUsage from "./pages/admin/AdminApiUsage";
 
 import DashboardLayout from "./components/layout/DashboardLayout";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminGenerations from "./pages/admin/AdminGenerations";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import NotFound from "./pages/NotFound";
 
 function App() {
     return (
@@ -52,6 +57,11 @@ function App() {
                     />
 
                     <Route
+                    path="/settings"
+                    element={<Settings />}
+                    />
+
+                    <Route
                         path="/generate"
                         element={<Generate />}
                     />
@@ -77,6 +87,16 @@ function App() {
                     />
 
                     <Route
+                        path="/admin/analytics"
+                        element={<AdminAnalytics />}
+                    />
+
+                    <Route
+                    path="/admin/generations"
+                    element={<AdminGenerations />}
+                    />
+
+                    <Route
                         path="/admin/providers"
                         element={<AdminProviders />}
                     />
@@ -87,6 +107,11 @@ function App() {
                     />
 
                     <Route
+                    path="/admin/users"
+                    element={<AdminUsers />}
+                    />
+
+                    <Route
                         path="/admin/api-usage"
                         element={<AdminApiUsage />}
                     />
@@ -94,15 +119,10 @@ function App() {
             </Route>
 
             {/* Fallback */}
-            <Route
-                path="*"
-                element={
-                    <Navigate
-                        to="/dashboard"
-                        replace
-                    />
-                }
-            />
+                <Route
+                    path="*"
+                    element={<NotFound />}
+                />
         </Routes>
     );
 }
