@@ -67,7 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post(
         '/generations',
         [GenerationController::class, 'store']
-    );
+    )->middleware('throttle:generation');
 
     Route::get(
         '/generations',

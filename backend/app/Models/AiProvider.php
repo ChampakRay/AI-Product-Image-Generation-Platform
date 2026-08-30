@@ -20,6 +20,10 @@ class AiProvider extends Model
         'is_default',
     ];
 
+    protected $hidden = [
+            'api_key',
+        ];
+
     public function generations(): HasMany
     {
         return $this->hasMany(
